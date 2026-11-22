@@ -20,7 +20,7 @@ struct ContentView: View {
                 LazyVStack(spacing: 12) {
                     ForEach(games) { game in
                         NavigationLink {
-                            gameDetails(game)
+                            GameDetailView(game: game)
                         } label: {
                             gameCard(game)
                         }
@@ -119,28 +119,5 @@ struct ContentView: View {
             Color.gray.opacity(0.08),
             in: RoundedRectangle(cornerRadius: 12)
         )
-    }
-
-    private func gameDetails(_ game: TrackedGame) -> some View {
-        VStack(spacing: 16) {
-            Text(game.title)
-                .font(.title2)
-                .bold()
-
-            Text("Released: \(game.releaseYear)")
-            Text("Status: \(game.status.isEmpty ? "-" : game.status)")
-            Text("Rating: \(game.rating)/5")
-
-            Text("Editing and progress logs coming next.")
-                .foregroundStyle(.secondary)
-
-            Link(
-                "Game data provided by RAWG",
-                destination: URL(string: "https://rawg.io")!
-            )
-            .font(.caption)
-        }
-        .padding()
-        .navigationTitle("Game details")
     }
 }
