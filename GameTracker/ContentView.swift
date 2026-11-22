@@ -6,121 +6,107 @@
 //
 
 import SwiftUI
-
-// Temporary Data model for the UI
-private struct PreviewGame: Identifiable {
-    let id = UUID()
-    let title: String
-    let year: Int
-    let status: String
-    let rating: Int
-}
+import SwiftData
 
 struct ContentView: View {
-    @State private var showingAddGame = false
+    @Query(sort: \TrackedGame.title)
+    private var games: [TrackedGame]
 
-    // Test data to be replaced by SwiftData
-    private let games: [PreviewGame] = [
-        PreviewGame(
-            title: "The Witcher 3: Wild Hunt",
-            year: 2015,
-            status: "Playing",
-            rating: 5
-        ),
-        PreviewGame(
-            title: "Minecraft",
-            year: 2011,
-            status: "Paused",
-            rating: 4
-        ),
-        PreviewGame(
-            title: "Stardew Valley",
-            year: 2016,
-            status: "Completed",
-            rating: 5
-        )
-    ]
+    @State private var showingAddGame = false
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(games) { game in
-                            NavigationLink {
-                                Text(game.title)
-                                    .navigationTitle("Game details")
-                            } label: {
-                                gameCard(game)
-                            }
-                            .buttonStyle(.plain)
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(games) { game in
+                        NavigationLink {
+                            gameDetails(game)
+                        } label: {
+                            gameCard(game)
                         }
+                        .buttonStyle(.plain)
                     }
-                    .padding()
                 }
-
-                Button {
-                    showingAddGame = true
-                } label: {
-                    Label(
-                        "Add Game",
-                        systemImage: "plus.rectangle.on.rectangle"
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
                 .padding()
+            }
+            .overlay {
+                if games.isEmpty {
+                    ContentUnavailableView(
+                        "No tracked games",
+                        systemImage: "gamecontroller",
+                        description: Text(
+                            "Add your first game to your collection."
+                        )
+                    )
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 8) {
+                    Button {
+                        showingAddGame = true
+                    } label: {
+                        Label(
+                            "Add Game",
+                            systemImage: "plus.rectangle.on.rectangle"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Link(
+                        "Game data provided by RAWG",
+                        destination: URL(string: "https://rawg.io")!
+                    )
+                    .font(.caption)
+                }
+                .padding()
+                .background(.regularMaterial)
             }
             .navigationTitle("My Tracked Games")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showingAddGame) {
-                NavigationStack {
-                    ContentUnavailableView(
-                        "Game Search",
-                        systemImage: "magnifyingglass",
-                        description: Text(
-                            "RAWG Search to be implemented..."
-                        )
-                    )
-                    .navigationTitle("Add Game")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Close") {
-                                showingAddGame = false
-                            }
-                        }
-                    }
-                }
+                GameSearchView()
             }
         }
     }
 
-    private func gameCard(_ game: PreviewGame) -> some View {
+    private func gameCard(_ game: TrackedGame) -> some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.15))
-                .overlay {
-                    Image(systemName: "gamecontroller.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(width: 80, height: 100)
+            AsyncImage(
+                url: game.coverURL.flatMap { URL(string: $0) }
+            ) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Image(systemName: "gamecontroller.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(width: 80, height: 100)
+            .clipped()
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(game.title)
                     .font(.headline)
 
-                Text(String(game.year))
+                Text(game.releaseYear)
                     .foregroundStyle(.secondary)
 
-                Text("Status: \(game.status)")
+                Text("Status: \(game.status.isEmpty ? "-" : game.status)")
                     .font(.subheadline)
 
-                Text(
-                    String(repeating: "★", count: game.rating) +
-                    String(repeating: "☆", count: 5 - game.rating)
-                )
-                .foregroundStyle(.orange)
+                if game.rating > 0 {
+                    Text(
+                        String(repeating: "★", count: game.rating) +
+                        String(repeating: "☆", count: 5 - game.rating)
+                    )
+                    .foregroundStyle(.orange)
+                } else {
+                    Text("Not rated")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer(minLength: 0)
@@ -134,8 +120,27 @@ struct ContentView: View {
             in: RoundedRectangle(cornerRadius: 12)
         )
     }
-}
 
-#Preview {
-    ContentView()
+    private func gameDetails(_ game: TrackedGame) -> some View {
+        VStack(spacing: 16) {
+            Text(game.title)
+                .font(.title2)
+                .bold()
+
+            Text("Released: \(game.releaseYear)")
+            Text("Status: \(game.status.isEmpty ? "-" : game.status)")
+            Text("Rating: \(game.rating)/5")
+
+            Text("Editing and progress logs coming next.")
+                .foregroundStyle(.secondary)
+
+            Link(
+                "Game data provided by RAWG",
+                destination: URL(string: "https://rawg.io")!
+            )
+            .font(.caption)
+        }
+        .padding()
+        .navigationTitle("Game details")
+    }
 }
