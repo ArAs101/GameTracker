@@ -6,13 +6,33 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2F2F493D30B3613E00F530BE /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 2F2F493C30B3613E00F530BE /* Secrets.xcconfig */; };
+		2F2F493F30B361B300F530BE /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 2F2F493E30B361A600F530BE /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		2F2F492830B3388F00F530BE /* GameTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GameTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F2F493C30B3613E00F530BE /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		2F2F493E30B361A600F530BE /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2F2F494130B3628300F530BE /* Exceptions for "GameTracker" folder in "GameTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2F2F492730B3388F00F530BE /* GameTracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2F2F492A30B3388F00F530BE /* GameTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F2F494130B3628300F530BE /* Exceptions for "GameTracker" folder in "GameTracker" target */,
+			);
 			path = GameTracker;
 			sourceTree = "<group>";
 		};
@@ -30,6 +50,8 @@
 		2F2F491F30B3388F00F530BE = {
 			isa = PBXGroup;
 			children = (
+				2F2F493E30B361A600F530BE /* .gitignore */,
+				2F2F493C30B3613E00F530BE /* Secrets.xcconfig */,
 				2F2F492A30B3388F00F530BE /* GameTracker */,
 				2F2F492930B3388F00F530BE /* Products */,
 			);
@@ -102,6 +124,8 @@
 		2F2F492630B3388F00F530BE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				2F2F493D30B3613E00F530BE /* Secrets.xcconfig in Resources */,
+				2F2F493F30B361B300F530BE /* .gitignore in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
@@ -238,6 +262,7 @@
 		};
 		2F2F493430B3389000F530BE /* Debug configuration for PBXNativeTarget "GameTracker" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2F2F493C30B3613E00F530BE /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -246,11 +271,13 @@
 				DEVELOPMENT_TEAM = 735599KDPC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GameTracker/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -270,6 +297,7 @@
 		};
 		2F2F493530B3389000F530BE /* Release configuration for PBXNativeTarget "GameTracker" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2F2F493C30B3613E00F530BE /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -278,11 +306,13 @@
 				DEVELOPMENT_TEAM = 735599KDPC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GameTracker/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
