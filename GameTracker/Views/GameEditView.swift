@@ -67,7 +67,7 @@ struct GameEditView: View {
             // Status selection
             Section("Status") {
                 Picker("Status", selection: $selectedStatus) {
-                    Text("-").tag("")
+                    Text("-").tag("-")
 
                     ForEach(
                         GameStatus.allCases,

@@ -7,6 +7,21 @@
 
 import SwiftUI
 import SwiftData
+import Combine
+
+private final class SearchDebouncer: ObservableObject {
+    let input = PassthroughSubject<String, Never>()
+    let output: AnyPublisher<String, Never>
+
+    init() {
+        output = input
+            .debounce(
+                for: .milliseconds(1000),
+                scheduler: DispatchQueue.main
+            )
+            .eraseToAnyPublisher()
+    }
+}
 
 struct GameSearchView: View {
     @Environment(\.modelContext) private var modelContext
@@ -21,36 +36,30 @@ struct GameSearchView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var searchTask: Task<Void, Never>?
+    @StateObject private var searchDebouncer = SearchDebouncer()
+    @State private var lastStartedQuery: String?
     
     private let rawgService = RAWGService()
-
+    
+    private var currentQuery: String {
+        searchTerm.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-
-                // Dauerhaft sichtbares Suchfeld
+                // Search field is permanently visible
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-
                     TextField("Search games", text: $searchTerm)
                         .autocorrectionDisabled()
                         .submitLabel(.search)
                         .onSubmit {
-                            startSearch()
+                            startSearch(for: currentQuery, force: true)
                         }
-
-                    Button {
-                        startSearch()
-                    } label: {
-                        Image(systemName: "arrow.right.circle.fill")
-                            .font(.title2)
-                    }
-                    .disabled(
-                        searchTerm.trimmingCharacters(
-                            in: .whitespacesAndNewlines
-                        ).isEmpty || isLoading
-                    )
                 }
                 .padding(12)
                 .background(
@@ -60,7 +69,7 @@ struct GameSearchView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 10)
 
-                // Ergebnisliste
+                // List of results
                 List {
                     ForEach(results) { game in
                         HStack(spacing: 12) {
@@ -102,20 +111,22 @@ struct GameSearchView: View {
                     }
                 }
                 .overlay {
-                    if isLoading {
-                        ProgressView("Searching games...")
-                    } else if results.isEmpty {
-                        ContentUnavailableView(
-                            hasSearched
-                                ? "No games found"
-                                : "Search for a game",
-                            systemImage: "magnifyingglass",
-                            description: Text(
+                    if results.isEmpty {
+                        if isLoading {
+                            ProgressView("Searching games...")
+                        } else {
+                            ContentUnavailableView(
                                 hasSearched
-                                    ? "Try another search term."
-                                    : "Enter a game title to search RAWG."
+                                    ? "No games found"
+                                    : "Search for a game",
+                                systemImage: "magnifyingglass",
+                                description: Text(
+                                    hasSearched
+                                        ? "Try another search term."
+                                        : "Enter a game title to search RAWG."
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -129,13 +140,19 @@ struct GameSearchView: View {
                     }
                 }
             }
-            .safeAreaInset(edge: .bottom) {
-                Link(
-                    "Game data provided by RAWG",
-                    destination: URL(string: "https://rawg.io")!
-                )
-                .font(.caption)
-                .padding(8)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 0) {
+                    Divider()
+
+                    Link(
+                        "Game data provided by RAWG",
+                        destination: URL(string: "https://rawg.io")!
+                    )
+                    .font(.caption)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                }
+                .background(Color(.systemBackground))
             }
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) {}
@@ -145,16 +162,47 @@ struct GameSearchView: View {
             .onDisappear {
                 searchTask?.cancel()
             }
+            .onChange(of: currentQuery) { _, newQuery in
+                searchTask?.cancel()
+                isLoading = false
+                lastStartedQuery = nil
+
+                if newQuery.isEmpty {
+                    results = []
+                    hasSearched = false
+                }
+
+                searchDebouncer.input.send(newQuery)
+            }
+            .onReceive(searchDebouncer.output) { query in
+                startSearch(for: query)
+            }
         }
     }
 
-    private func startSearch() {
+    private func startSearch(
+        for query: String,
+        force: Bool = false
+    ) {
+        guard query.count >= 2,
+              query == currentQuery,
+              !isLoading else {
+            return
+        }
+
+        guard force || lastStartedQuery != query else {
+            return
+        }
+
         searchTask?.cancel()
+        lastStartedQuery = query
+        isLoading = true
 
         searchTask = Task {
-            await searchGames()
+            await searchGames(for: query)
         }
     }
+
 
 
     private func isTracked(_ game: RAWGGame) -> Bool {
@@ -162,27 +210,32 @@ struct GameSearchView: View {
             $0.rawgID == game.id
         }
     }
-
-    private func searchGames() async {
-        let query = searchTerm.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-
-        guard !query.isEmpty else { return }
-
-        isLoading = true
-        hasSearched = true
-        results = []
-
-        defer {
-            isLoading = false
-        }
-
+    
+    private func searchGames(for query: String) async {
         do {
-            results = try await rawgService.searchGames(query)
-        } catch is CancellationError {
-            return
+            try Task.checkCancellation()
+
+            print("RAWG search: \(query)")
+
+            let games = try await rawgService.searchGames(query)
+
+            try Task.checkCancellation()
+
+            guard currentQuery == query else {
+                return
+            }
+
+            results = games
+            hasSearched = true
+            isLoading = false
+
         } catch {
+            guard !Task.isCancelled,
+                  currentQuery == query else {
+                return
+            }
+
+            isLoading = false
             errorMessage = error.localizedDescription
             showError = true
         }
